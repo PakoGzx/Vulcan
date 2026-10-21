@@ -1,8 +1,8 @@
 package com.example.vulcan
 
 import android.os.Bundle
-import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -14,7 +14,7 @@ class RegistroActivity : AppCompatActivity() {
     private lateinit var etNombre: EditText
     private lateinit var etCorreo: EditText
     private lateinit var etPassword: EditText
-    private lateinit var btnRegistrar: Button
+    private lateinit var btnRegistrar: TextView
 
     private lateinit var dbHelper: DatabaseHelper
 
@@ -60,6 +60,13 @@ class RegistroActivity : AppCompatActivity() {
         }else{
             // Si es false
             Toast.makeText(this, "Registro Fallido", Toast.LENGTH_SHORT).show()
+        }
+
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
         }
     }
 }

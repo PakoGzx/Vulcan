@@ -85,6 +85,7 @@
                 android:drawablePadding="10dp"
                 android:hint="Contraseña"
                 android:inputType="textPassword"
+                android:textColor="#121010"
                 android:paddingStart="15dp"
                 android:paddingEnd="15dp"
                 android:textColorHint="#121010" android:textStyle="bold"
@@ -97,17 +98,10 @@
                 android:textAlignment="center"
                 android:gravity="center"
                 android:layout_marginTop="20dp"
-                android:background="asd"
                 android:text="Registrar"
                 android:textColor="#FFFFFF"
                 android:textSize="23sp"
                 android:textStyle="bold" />
-
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:background="FFFFFF"
-                android:scaleType="centerCrop" />
 
         </LinearLayout>
 
