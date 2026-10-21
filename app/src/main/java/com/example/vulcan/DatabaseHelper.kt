@@ -58,4 +58,19 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(
         return resultado != -1L
     }
 
+    //Metodo para consulta de usuarios
+    fun iniciarSesion(correo: String, password: String): Boolean {
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_USUARIOS,
+            arrayOf(COLUMN_ID),
+            "$COLUMN_CORREO = ? AND $COLUMN_PASSWORD = ?",
+            arrayOf(correo, password),
+            null,
+            null,
+            null
+        )
+        return TODO("Provide the return value")
+    }
+
 }
