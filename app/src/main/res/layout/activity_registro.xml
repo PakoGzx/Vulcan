@@ -12,16 +12,6 @@
         android:layout_height="match_parent"
         android:background="#211B1B"/>
 
-    <ImageView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:background="FFFFFF"
-        android:scaleType="centerCrop"/>
-
     <androidx.cardview.widget.CardView
         android:id="@+id/ccontenedor"
         android:layout_width="0dp"
@@ -66,11 +56,12 @@
                 android:paddingStart="15dp"
                 android:paddingEnd="15dp"
                 android:textColor="#333333"
-                android:textColorHint="#FFCDBF"
+                android:textColorHint="#121010" android:textStyle="bold"
+                android:textFontWeight="@integer/material_motion_duration_long_1"
                 android:layout_marginBottom="15dp"/>
 
             <EditText
-                android:id="@+id/etEmail"
+                android:id="@+id/etCorreo"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
                 android:background="@drawable/bg_input"
@@ -81,7 +72,8 @@
                 android:inputType="textEmailAddress"
                 android:paddingStart="15dp"
                 android:paddingEnd="15dp"
-                android:textColorHint="#FFCDBF" />
+                android:textColorHint="#121010" android:textStyle="bold"
+                android:textFontWeight="@integer/material_motion_duration_long_1"/>
 
             <EditText
                 android:id="@+id/etPassword"
@@ -95,8 +87,8 @@
                 android:inputType="textPassword"
                 android:paddingStart="15dp"
                 android:paddingEnd="15dp"
-                android:textColorHint="#FFCDBF"
-                />
+                android:textColorHint="#121010" android:textStyle="bold"
+                android:textFontWeight="@integer/material_motion_duration_long_1" />
 
             <TextView
                 android:id="@+id/btnRegistrar"
@@ -111,6 +103,14 @@
                 android:textSize="23sp"
                 android:textStyle="bold" />
 
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:background="FFFFFF"
+                android:scaleType="centerCrop" />
+
         </LinearLayout>
+
     </androidx.cardview.widget.CardView>
 
+</androidx.constraintlayout.widget.ConstraintLayout>
