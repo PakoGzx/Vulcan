@@ -25,7 +25,7 @@ class RegistroActivity : AppCompatActivity() {
         setContentView(R.layout.activity_registro)
 
         etNombre = findViewById(R.id.etNombre)
-        etCorreo = findViewById(R.id.etEmail)
+        etCorreo = findViewById(R.id.etCorreo)
         etPassword = findViewById(R.id.etPassword)
         btnRegistrar = findViewById(R.id.btnRegistrar)
 
