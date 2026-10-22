@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -38,6 +39,30 @@ class MainActivity : AppCompatActivity() {
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
+        }
+    }
+
+    //METODO PARA INICIAR SESION
+    private fun iniciarSesion() {
+        val correo = etCorreo.text.toString()
+        val pass = etContrasenia.text.toString()
+
+        if(correo.isEmpty() || pass.isEmpty()){
+            Toast.makeText(this, "Completa todos los campos", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val resultado = dbHelper.iniciarSesion(correo, pass)
+
+        if(resultado){
+            Toast.makeText(this, "Bienvenido", Toast.LENGTH_SHORT).show()
+
+            val intent = Intent(this, HomeActivity::class.java)
+            startActivity(intent)
+
+            finish()
+        }else{
+            Toast.makeText(this, "Correo o contraseña incorrectos", Toast.LENGTH_SHORT).show()
         }
     }
 }
