@@ -13,6 +13,7 @@ import org.w3c.dom.Text
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var tvCrearCuenta : TextView
     private lateinit var dbHelper : DatabaseHelper
     private lateinit var etCorreo : EditText
     private lateinit var etContrasenia : EditText
@@ -23,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        val tvCrearCuenta = findViewById<TextView>(R.id.tvCrearCuenta)
+        tvCrearCuenta = findViewById(R.id.tvCrearCuenta)
         etCorreo = findViewById(R.id.etCorreo)
         etContrasenia = findViewById(R.id.etContrasenia)
         btnLogin = findViewById(R.id.btnLogin)
@@ -33,6 +34,10 @@ class MainActivity : AppCompatActivity() {
         tvCrearCuenta.setOnClickListener {
             val intent = Intent(this, RegistroActivity::class.java)
             startActivity(intent)
+        }
+
+        btnLogin.setOnClickListener {
+            iniciarSesion()
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->

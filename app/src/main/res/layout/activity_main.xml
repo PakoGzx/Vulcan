@@ -78,6 +78,7 @@
                 android:drawableStart="@drawable/pass"
                 android:drawablePadding="10dp"
                 android:hint="Contraseña"
+                android:textColor="#333333"
                 android:inputType="textPassword"
                 android:paddingStart="15dp"
                 android:paddingEnd="15dp"
