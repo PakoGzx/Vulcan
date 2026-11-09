@@ -66,4 +66,7 @@ dependencies {
     // ViewModel y lifecycleScope
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.11.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")
+    implementation("androidx.recyclerview:recyclerview:1.4.0")
+    // Para el Snackbar (normalmente ya viene en proyectos nuevos; si no, agrégala)
+    implementation("com.google.android.material:material:1.14.0")
 }
