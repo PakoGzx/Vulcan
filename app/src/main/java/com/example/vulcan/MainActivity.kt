@@ -9,7 +9,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import org.w3c.dom.Text
+import android.util.Log
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import com.example.vulcan.data.model.MensajeChat
+import com.example.vulcan.data.repository.ChatRepository
 
 class MainActivity : AppCompatActivity() {
 

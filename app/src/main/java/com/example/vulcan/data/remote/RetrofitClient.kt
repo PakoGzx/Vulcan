@@ -12,7 +12,7 @@ object RetrofitClient {
     private const val BASE_URL = "https://generativelanguage.googleapis.com/"
 
     // Cámbialo por el modelo que verificaste en AI Studio / Postman
-    const val MODELO = "gemini-3.7-flash"
+    const val MODELO = "gemini-3.5-flash-lite"
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -28,7 +28,8 @@ object RetrofitClient {
         }
         .addInterceptor(logging)
         .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)   // la IA puede tardar en responder
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)// la IA puede tardar en responder
         .build()
 
     val api: GeminiApi = Retrofit.Builder()

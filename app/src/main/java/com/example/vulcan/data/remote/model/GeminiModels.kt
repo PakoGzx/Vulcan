@@ -1,7 +1,7 @@
 package com.example.vulcan.data.remote.model
 
 // Un fragmento de texto: { "text": "hola" }
-data class Part(val text: String)
+data class Part(val text: String? = null)
 
 // Un mensaje: { "role": "user", "parts": [ ... ] }
 data class Content(

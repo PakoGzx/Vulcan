@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import com.example.vulcan.data.local.ChatTable
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(
     context,
@@ -14,12 +15,20 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(
 
     companion object {
         private const val DATABASE_NAME = "Vulcan.db"
-        private const val DATABASE_VERSION = 1
+        private const val DATABASE_VERSION = 2
         private const val TABLE_USUARIOS = "usuarios"
         private const val COLUMN_ID = "id"
         private const val COLUMN_NOMBRE = "nombre"
         private const val COLUMN_CORREO = "correo"
         private const val COLUMN_PASSWORD = "password"
+
+        @Volatile
+        private var instancia: DatabaseHelper? = null
+
+        fun getInstance(context: Context): DatabaseHelper =
+            instancia ?: synchronized(this) {
+                instancia ?: DatabaseHelper(context.applicationContext).also { instancia = it }
+            }
     }
 
     //METODO PARA CREAR LA BASE DE DATOS Y SUS TABLAS
@@ -33,12 +42,14 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(
                 )
         """.trimIndent()
         db?.execSQL(crearTablaUsaurios)
+        db?.execSQL(ChatTable.SQL_CREAR)
     }
 
     //METODO PARA ACTUALIZAR LA BASE DE DATOS
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        db?.execSQL("DROP TABLE IF EXISTS $TABLE_USUARIOS")
-        onCreate(db)
+        if (oldVersion < 2) {
+            db?.execSQL(ChatTable.SQL_CREAR)             // ③ crea la tabla en bases ya existentes
+        }
     }
 
     //METODO PARA REGISTRAR UN USUARIO (INSERTAR)
@@ -74,7 +85,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(
         val usuarioEncontrado = cursor.count > 0
 
         cursor.close()
-        db.close()
 
         return usuarioEncontrado
     }
