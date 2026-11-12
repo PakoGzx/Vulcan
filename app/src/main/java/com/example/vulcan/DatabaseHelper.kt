@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.example.vulcan.data.local.ChatTable
+import com.example.vulcan.data.local.NotaTable
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(
     context,
@@ -15,7 +16,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(
 
     companion object {
         private const val DATABASE_NAME = "Vulcan.db"
-        private const val DATABASE_VERSION = 2
+        private const val DATABASE_VERSION = 3
         private const val TABLE_USUARIOS = "usuarios"
         private const val COLUMN_ID = "id"
         private const val COLUMN_NOMBRE = "nombre"
@@ -43,12 +44,22 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(
         """.trimIndent()
         db?.execSQL(crearTablaUsaurios)
         db?.execSQL(ChatTable.SQL_CREAR)
+        db?.execSQL(NotaTable.SQL_CREAR)
     }
 
     //METODO PARA ACTUALIZAR LA BASE DE DATOS
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
         if (oldVersion < 2) {
             db?.execSQL(ChatTable.SQL_CREAR)             // ③ crea la tabla en bases ya existentes
+        }
+        if (oldVersion < 3) {
+            if (oldVersion >= 2) {
+                // El historial de chat existente pasa a ser por usuario (los mensajes viejos quedan en 0)
+                db?.execSQL(
+                    "ALTER TABLE ${ChatTable.NOMBRE} ADD COLUMN ${ChatTable.COL_USUARIO} INTEGER NOT NULL DEFAULT 0"
+                )
+            }
+            db?.execSQL(NotaTable.SQL_CREAR)
         }
     }
 
@@ -70,22 +81,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(
     }
 
     //METODO PARA LA CONSULTA DE USUARIOS
-    fun iniciarSesion(correo: String, password: String): Boolean {
-        val db = readableDatabase
-        val query_sql = """
-            SELECT * FROM $TABLE_USUARIOS
-            WHERE $COLUMN_CORREO = ? 
-            AND $COLUMN_PASSWORD = ?
-        """.trimIndent()
-        val cursor = db.rawQuery(
-            query_sql, arrayOf(correo, password)
-        )
-
-        // Contar el numero de resultados
-        val usuarioEncontrado = cursor.count > 0
-
-        cursor.close()
-
-        return usuarioEncontrado
+    fun iniciarSesion(correo: String, password: String): Long? {
+        val sql = "SELECT $COLUMN_ID FROM $TABLE_USUARIOS WHERE $COLUMN_CORREO = ? AND $COLUMN_PASSWORD = ?"
+        return readableDatabase.rawQuery(sql, arrayOf(correo, password)).use { cursor ->
+            if (cursor.moveToFirst()) cursor.getLong(0) else null
+        }
     }
 }

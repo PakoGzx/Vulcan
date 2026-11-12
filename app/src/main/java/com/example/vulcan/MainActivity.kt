@@ -9,11 +9,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import android.util.Log
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
-import com.example.vulcan.data.model.MensajeChat
-import com.example.vulcan.data.repository.ChatRepository
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,6 +20,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Si ya hay una sesión iniciada, salta directo a las notas
+        if (SesionManager.haySesion(this)) {
+            startActivity(Intent(this, HomeActivity::class.java))
+            finish()
+            return
+        }
+
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
@@ -32,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         etCorreo = findViewById(R.id.etCorreo)
         etContrasenia = findViewById(R.id.etContrasenia)
         btnLogin = findViewById(R.id.btnLogin)
-        dbHelper = DatabaseHelper(this)
+        dbHelper = DatabaseHelper.getInstance(this)
 
         // Crear evento para abrir la actividad de registr
         tvCrearCuenta.setOnClickListener {
@@ -61,9 +64,10 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val resultado = dbHelper.iniciarSesion(correo, pass)
+        val usuarioId = dbHelper.iniciarSesion(correo, pass)
 
-        if(resultado){
+        if(usuarioId != null){
+            SesionManager.guardar(this, usuarioId)
             Toast.makeText(this, "Bienvenido", Toast.LENGTH_SHORT).show()
 
             val intent = Intent(this, HomeActivity::class.java)
