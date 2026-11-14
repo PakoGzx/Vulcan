@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "488168281535",
+    "project_id": "vulcan-b2ca4",
+    "storage_bucket": "vulcan-b2ca4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:488168281535:android:63ece57a281cd0d0557d0a",
+        "android_client_info": {
+          "package_name": "com.example.vulcan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "488168281535-e9u3j2jke7avca2i02ef0fj4sbdkscut.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvN-ZFZ7E2m5jy_2F3ZXk4r2Q1rILbQzw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "488168281535-e9u3j2jke7avca2i02ef0fj4sbdkscut.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

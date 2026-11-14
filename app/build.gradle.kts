@@ -7,6 +7,7 @@ val localProps = Properties().apply {
 
 plugins {
     alias(libs.plugins.android.application)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -70,4 +71,10 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.4.0")
     // Para el Snackbar (normalmente ya viene en proyectos nuevos; si no, agrégala)
     implementation("com.google.android.material:material:1.14.0")
+    implementation(platform("com.google.firebase:firebase-bom:35.2.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("androidx.credentials:credentials:1.6.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.6.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.2.1")
 }
