@@ -39,7 +39,10 @@ class MainActivity : AppCompatActivity() {
 
         // Si ya hay una sesión iniciada, salta directo a las notas
         if (SesionManager.haySesion(this)) {
-            startActivity(Intent(this, HomeActivity::class.java))
+            val intent = Intent(this, HomeActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            startActivity(intent)
             finish()
             return
         }
@@ -80,7 +83,7 @@ class MainActivity : AppCompatActivity() {
 
     //METODO PARA INICIAR SESION
     private fun iniciarSesion() {
-        val correo = etCorreo.text.toString()
+        val correo = etCorreo.text.toString().trim()
         val pass = etContrasenia.text.toString()
 
         if(correo.isEmpty() || pass.isEmpty()){
@@ -94,9 +97,10 @@ class MainActivity : AppCompatActivity() {
             SesionManager.guardar(this, usuarioId)
             Toast.makeText(this, "Bienvenido", Toast.LENGTH_SHORT).show()
 
-            val intent = Intent(this, HomeActivity::class.java)
+            val intent = Intent(this, HomeActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
             startActivity(intent)
-
             finish()
         }else{
             Toast.makeText(this, "Correo o contraseña incorrectos", Toast.LENGTH_SHORT).show()
@@ -116,13 +120,33 @@ class MainActivity : AppCompatActivity() {
             if (inicio.isSuccessful) {
                 //Crear una variable que guarde la informacion del usuario
                 val usuario = auth.currentUser
+                val usuarioIdLocal = dbHelper.obtenerOCrearUsuarioGoogle(
+                    correo = usuario?.email,
+                    nombre = usuario?.displayName
+                )
 
-                Toast.makeText(this, "Bienvenido ${usuario?.displayName}", Toast.LENGTH_SHORT).show()
-
-                val intent = Intent(this, HomeActivity::class.java)
-                startActivity(intent)
-                finish()
+                if (usuarioIdLocal != null) {
+                    SesionManager.guardar(this, usuarioIdLocal)
+                    Toast.makeText(
+                        this,
+                        "Bienvenido ${usuario?.displayName ?: usuario?.email}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    val intent = Intent(this, HomeActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    startActivity(intent)
+                    finish()
+                } else {
+                    btnGoogle.isEnabled = true
+                    Toast.makeText(
+                        this,
+                        "No se pudo vincular la cuenta de Google en local",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             } else {
+                btnGoogle.isEnabled = true
                 Toast.makeText(this, "Error al iniciar con Firebase", Toast.LENGTH_SHORT).show()
             }
         }
@@ -144,13 +168,18 @@ class MainActivity : AppCompatActivity() {
                 autenticarFirebase(credencialGoogle.idToken)
 
             } catch (e : GoogleIdTokenParsingException){
+                btnGoogle.isEnabled = true
                 Toast.makeText(this, "Credenciales incorrectas", Toast.LENGTH_SHORT).show()
             }
+        } else {
+            btnGoogle.isEnabled = true
+            Toast.makeText(this, "No se recibió una credencial de Google válida", Toast.LENGTH_SHORT).show()
         }
     }
 
     // 5. MÉTODO PARA INICIAR SESIÓN
     private fun iniciarSesionGoogle(){
+        btnGoogle.isEnabled = false
 
         val inicioGoogle = GetSignInWithGoogleOption.Builder(
             getString(R.string.default_web_client_id)).build()
@@ -172,6 +201,7 @@ class MainActivity : AppCompatActivity() {
                 procesarCredencial(resultado.credential)
 
             } catch (e : GetCredentialException) {
+                btnGoogle.isEnabled = true
                 Toast.makeText(this@MainActivity, "Error en las credenciales del usuario", Toast.LENGTH_SHORT).show()
             }
         }

@@ -36,7 +36,6 @@ class NotaDao(private val helper: SQLiteOpenHelper) {
         )
     }
 
-    // Solo cambia los campos que no son null; devuelve las filas afectadas
     suspend fun actualizar(usuarioId: Long, id: Long, titulo: String?, contenido: String?): Int =
         withContext(Dispatchers.IO) {
             val valores = ContentValues().apply {
@@ -59,7 +58,6 @@ class NotaDao(private val helper: SQLiteOpenHelper) {
         )
     }
 
-    // Más recientes primero
     private suspend fun consultar(where: String, args: Array<String>): List<Nota> =
         withContext(Dispatchers.IO) {
             val lista = mutableListOf<Nota>()

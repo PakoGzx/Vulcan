@@ -82,9 +82,36 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(
 
     //METODO PARA LA CONSULTA DE USUARIOS
     fun iniciarSesion(correo: String, password: String): Long? {
-        val sql = "SELECT $COLUMN_ID FROM $TABLE_USUARIOS WHERE $COLUMN_CORREO = ? AND $COLUMN_PASSWORD = ?"
-        return readableDatabase.rawQuery(sql, arrayOf(correo, password)).use { cursor ->
+        val emailLimpio = correo.trim().lowercase()
+        if (password == "__GOOGLE_AUTH__") return null
+
+        val sql = "SELECT $COLUMN_ID FROM $TABLE_USUARIOS WHERE LOWER($COLUMN_CORREO) = ? AND $COLUMN_PASSWORD = ?"
+        return readableDatabase.rawQuery(sql, arrayOf(emailLimpio, password)).use { cursor ->
             if (cursor.moveToFirst()) cursor.getLong(0) else null
         }
+    }
+
+    fun obtenerOCrearUsuarioGoogle(correo: String?, nombre: String?): Long? {
+        val emailLimpio = correo?.trim()?.lowercase()
+        if (emailLimpio.isNullOrEmpty()) return null
+
+        val db = writableDatabase
+        db.rawQuery(
+            "SELECT id FROM usuarios WHERE LOWER(correo) = ? LIMIT 1",
+            arrayOf(emailLimpio)
+        ).use { cursor ->
+            if (cursor.moveToFirst()) {
+                return cursor.getLong(cursor.getColumnIndexOrThrow("id"))
+            }
+        }
+        val values = ContentValues().apply {
+            put(COLUMN_CORREO, emailLimpio)
+            put(COLUMN_NOMBRE, nombre?.takeIf { it.isNotBlank() } ?: emailLimpio.substringBefore("@"))
+            //Valor especial para identificar a los usuarios de google
+            put(COLUMN_PASSWORD, "__GOOGLE_AUTH__")
+        }
+
+        val nuevoId = db.insert("usuarios", null, values)
+        return if (nuevoId != -1L) nuevoId else null
     }
 }

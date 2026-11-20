@@ -3,6 +3,7 @@ package com.example.vulcan
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -10,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.credentials.ClearCredentialStateRequest
+import androidx.credentials.CredentialManager
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -26,6 +29,7 @@ import com.example.vulcan.ui.notas.NotaAdapter
 import com.example.vulcan.ui.notas.NotasViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 class HomeActivity : AppCompatActivity() {
@@ -44,6 +48,10 @@ class HomeActivity : AppCompatActivity() {
     private val cerrarChatAlAtras = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() = alternarChat(false)
     }
+
+    private lateinit var auth : FirebaseAuth
+    private lateinit var credencialManager: androidx.credentials.CredentialManager
+    private var cerrandoSesion = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,6 +78,9 @@ class HomeActivity : AppCompatActivity() {
 
         binding.btnNueva.setOnClickListener { mostrarEditor(null) }
         binding.btnSalir.setOnClickListener { cerrarSesion() }
+
+        auth = FirebaseAuth.getInstance()
+        credencialManager = CredentialManager.create(this)
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -116,14 +127,37 @@ class HomeActivity : AppCompatActivity() {
             .show()
     }
 
+
+
     private fun cerrarSesion() {
+        if (cerrandoSesion) return
+        cerrandoSesion = true
+
+        auth.signOut()
         SesionManager.cerrar(this)
         NotasRepository.get(this).limpiar()
-        irALogin()
+        chatViewModel.limpiarChat()
+
+        lifecycleScope.launch {
+            try {
+                credencialManager.clearCredentialState(ClearCredentialStateRequest())
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@HomeActivity,
+                    "No se pudo limpiar el estado de credenciales",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } finally {
+                irALogin()
+            }
+        }
     }
 
     private fun irALogin() {
-        startActivity(Intent(this, MainActivity::class.java))
+        val intent = Intent(this@HomeActivity, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
         finish()
     }
 

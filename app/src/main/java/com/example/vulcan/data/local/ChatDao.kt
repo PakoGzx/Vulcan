@@ -7,8 +7,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class ChatDao(private val helper: SQLiteOpenHelper) {
-
-    // Guarda un mensaje y devuelve el id asignado (-1 si falló)
     suspend fun insertar(mensaje: MensajeChat): Long = withContext(Dispatchers.IO) {
         val valores = ContentValues().apply {
             put(ChatTable.COL_ROL, mensaje.rol)
@@ -18,7 +16,6 @@ class ChatDao(private val helper: SQLiteOpenHelper) {
         helper.writableDatabase.insert(ChatTable.NOMBRE, null, valores)
     }
 
-    // Lee todo el historial, del más antiguo al más reciente
     suspend fun obtenerTodos(): List<MensajeChat> = withContext(Dispatchers.IO) {
         val lista = mutableListOf<MensajeChat>()
         helper.readableDatabase.query(
@@ -44,7 +41,6 @@ class ChatDao(private val helper: SQLiteOpenHelper) {
         lista
     }
 
-    // Borra toda la conversación; devuelve cuántas filas se eliminaron
     suspend fun borrarTodos(): Int = withContext(Dispatchers.IO) {
         helper.writableDatabase.delete(ChatTable.NOMBRE, null, null)
     }
