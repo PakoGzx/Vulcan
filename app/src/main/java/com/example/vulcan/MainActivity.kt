@@ -2,6 +2,7 @@ package com.example.vulcan
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
@@ -147,6 +148,8 @@ class MainActivity : AppCompatActivity() {
                 }
             } else {
                 btnGoogle.isEnabled = true
+                // Guarda el detalle del error de Firebase en Logcat
+                Log.e("VulcanGoogle", "Firebase: ${inicio.exception?.message}", inicio.exception)
                 Toast.makeText(this, "Error al iniciar con Firebase", Toast.LENGTH_SHORT).show()
             }
         }
@@ -202,7 +205,13 @@ class MainActivity : AppCompatActivity() {
 
             } catch (e : GetCredentialException) {
                 btnGoogle.isEnabled = true
-                Toast.makeText(this@MainActivity, "Error en las credenciales del usuario", Toast.LENGTH_SHORT).show()
+                // Muestra el tipo de error y guarda el detalle en Logcat
+                Log.e("VulcanGoogle", "Tipo: ${e::class.java.simpleName} - ${e.message}", e)
+                Toast.makeText(
+                    this@MainActivity,
+                    "Error: ${e::class.java.simpleName}",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
