@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.vulcan.R
 import com.example.vulcan.data.model.Nota
 import com.example.vulcan.databinding.ItemNotaBinding
 import java.text.DateFormat
@@ -13,7 +14,8 @@ import java.util.Date
 
 class NotaAdapter(
     private val alEditar: (Nota) -> Unit,
-    private val alEliminar: (Nota) -> Unit
+    private val alEliminar: (Nota) -> Unit,
+    private val alFavorita: (Nota) -> Unit
 ) : ListAdapter<Nota, NotaAdapter.NotaViewHolder>(Diff) {
 
     class NotaViewHolder(val binding: ItemNotaBinding) : RecyclerView.ViewHolder(binding.root)
@@ -30,7 +32,15 @@ class NotaAdapter(
             tvFecha.text = DateFormat
                 .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
                 .format(Date(nota.modificada))
+
+            btnFavorita.setImageResource(
+                if (nota.favorita) R.drawable.ic_favorito_on else R.drawable.ic_favorito_off
+            )
+            btnFavorita.contentDescription =
+                if (nota.favorita) "Quitar de favoritas" else "Marcar como favorita"
+
             root.setOnClickListener { alEditar(nota) }
+            btnFavorita.setOnClickListener { alFavorita(nota) }
             btnEliminar.setOnClickListener { alEliminar(nota) }
         }
     }

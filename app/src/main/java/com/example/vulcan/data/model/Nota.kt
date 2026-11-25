@@ -6,5 +6,6 @@ data class Nota(
     val titulo: String,
     val contenido: String,
     val creada: Long = System.currentTimeMillis(),
-    val modificada: Long = creada
+    val modificada: Long = creada,
+    val favorita: Boolean = false
 )

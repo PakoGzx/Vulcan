@@ -2,12 +2,19 @@ package com.example.vulcan.data.remote.model
 
 import com.google.gson.JsonObject
 
-// Un fragmento de texto: { "text": "hola" }
-data class Part(val text: String? = null)
-
-//Llama a las funciones de la clase NotasTools
+// Gemini pide ejecutar una función: { "name": "crear_nota", "args": {...} }
 data class FunctionCall(val name: String, val args: JsonObject? = null)
+
+// Lo que le devolvemos a Gemini después de ejecutarla
 data class FunctionResponse(val name: String, val response: JsonObject)
+
+// Un fragmento del mensaje: texto, llamada a función o respuesta de función
+data class Part(
+    val text: String? = null,
+    val functionCall: FunctionCall? = null,
+    val functionResponse: FunctionResponse? = null,
+    val thoughtSignature: String? = null   // Gemini 3 lo exige al devolver llamadas a funciones
+)
 
 // Un mensaje: { "role": "user", "parts": [ ... ] }
 data class Content(
@@ -29,7 +36,8 @@ data class FunctionDeclaration(
 // Lo que ENVIAMOS
 data class GeminiRequest(
     val contents: List<Content>,
-    val systemInstruction: SystemInstruction? = null
+    val systemInstruction: SystemInstruction? = null,
+    val tools: List<Tool>? = null
 )
 
 // Lo que RECIBIMOS

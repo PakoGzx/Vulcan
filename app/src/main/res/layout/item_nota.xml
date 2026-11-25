@@ -50,6 +50,14 @@
                 android:textSize="12sp" />
 
             <ImageButton
+                android:id="@+id/btnFavorita"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Marcar como favorita"
+                android:src="@drawable/ic_favorito_off" />
+
+            <ImageButton
                 android:id="@+id/btnEliminar"
                 android:layout_width="40dp"
                 android:layout_height="40dp"

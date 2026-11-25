@@ -40,6 +40,12 @@ class NotasRepository private constructor(private val dao: NotaDao) {
         return filas > 0
     }
 
+    suspend fun cambiarFavorita(usuarioId: Long, id: Long, favorita: Boolean): Boolean {
+        val filas = dao.cambiarFavorita(usuarioId, id, favorita)
+        if (filas > 0) cargar(usuarioId)
+        return filas > 0
+    }
+
     // Al cerrar sesión, para no dejar notas de la cuenta anterior en memoria
     fun limpiar() {
         _notas.value = emptyList()

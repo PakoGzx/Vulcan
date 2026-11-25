@@ -16,7 +16,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(
 
     companion object {
         private const val DATABASE_NAME = "Vulcan.db"
-        private const val DATABASE_VERSION = 3
+        private const val DATABASE_VERSION = 4
         private const val TABLE_USUARIOS = "usuarios"
         private const val COLUMN_ID = "id"
         private const val COLUMN_NOMBRE = "nombre"
@@ -50,7 +50,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(
     //METODO PARA ACTUALIZAR LA BASE DE DATOS
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
         if (oldVersion < 2) {
-            db?.execSQL(ChatTable.SQL_CREAR)             // ③ crea la tabla en bases ya existentes
+            db?.execSQL(ChatTable.SQL_CREAR)             // crea la tabla en bases ya existentes
         }
         if (oldVersion < 3) {
             if (oldVersion >= 2) {
@@ -60,6 +60,12 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(
                 )
             }
             db?.execSQL(NotaTable.SQL_CREAR)
+        }
+        if (oldVersion == 3) {
+            // La tabla notas ya existía sin la columna favorita
+            db?.execSQL(
+                "ALTER TABLE ${NotaTable.NOMBRE} ADD COLUMN ${NotaTable.COL_FAVORITA} INTEGER NOT NULL DEFAULT 0"
+            )
         }
     }
 

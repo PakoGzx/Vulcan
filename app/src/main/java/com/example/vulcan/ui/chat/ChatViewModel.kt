@@ -4,9 +4,12 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vulcan.DatabaseHelper
+import com.example.vulcan.SesionManager
 import com.example.vulcan.data.local.ChatDao
 import com.example.vulcan.data.model.MensajeChat
 import com.example.vulcan.data.repository.ChatRepository
+import com.example.vulcan.data.repository.NotasRepository
+import com.example.vulcan.data.repository.NotasToolExecutor
 import com.example.vulcan.data.repository.ResultadoChat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +19,7 @@ import kotlinx.coroutines.launch
 
 class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repo = ChatRepository(ChatDao(DatabaseHelper(application)))
+    private val repo = ChatRepository(ChatDao(DatabaseHelper.getInstance(application)))
 
     private val _estado = MutableStateFlow(ChatUiState())
     val estado: StateFlow<ChatUiState> = _estado.asStateFlow()
@@ -61,7 +64,14 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     // Llama a la API con el historial actual y procesa el resultado
     private suspend fun pedirRespuesta() {
-        when (val resultado = repo.enviarMensaje(_estado.value.mensajes)) {
+        val app = getApplication<Application>()
+        // El usuarioId sale de la sesión, nunca de lo que diga el modelo
+        val executor = NotasToolExecutor(
+            NotasRepository.get(app),
+            SesionManager.usuarioId(app)
+        )
+
+        when (val resultado = repo.enviarMensaje(_estado.value.mensajes, executor)) {
             is ResultadoChat.Exito -> {
                 val guardado = repo.guardarMensaje(
                     MensajeChat(rol = MensajeChat.ROL_MODELO, texto = resultado.texto)

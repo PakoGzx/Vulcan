@@ -29,6 +29,7 @@ import com.example.vulcan.ui.notas.NotaAdapter
 import com.example.vulcan.ui.notas.NotasViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.tabs.TabLayout
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -40,7 +41,8 @@ class HomeActivity : AppCompatActivity() {
 
     private val adapter = NotaAdapter(
         alEditar = { mostrarEditor(it) },
-        alEliminar = { confirmarEliminar(it) }
+        alEliminar = { confirmarEliminar(it) },
+        alFavorita = { viewModel.alternarFavorita(it) }
     )
     private val mensajeAdapter = MensajeAdapter()
 
@@ -82,10 +84,24 @@ class HomeActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         credencialManager = CredentialManager.create(this)
 
+        // Pestañas "Todas" / "Favoritas" (se restaura la pestaña al rotar la pantalla)
+        binding.tabsFiltro.getTabAt(if (viewModel.soloFavoritas.value) 1 else 0)?.select()
+        binding.tabsFiltro.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                viewModel.mostrarSoloFavoritas(tab.position == 1)
+            }
+            override fun onTabUnselected(tab: TabLayout.Tab) {}
+            override fun onTabReselected(tab: TabLayout.Tab) {}
+        })
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.notas.collect { notas ->
+                viewModel.notasVisibles.collect { notas ->
                     adapter.submitList(notas)
+                    binding.tvVacio.text = if (viewModel.soloFavoritas.value)
+                        "Aún no tienes notas favoritas.\nToca la estrella de una nota para añadirla."
+                    else
+                        "Aún no tienes notas.\nCrea una o pídeselo al asistente."
                     binding.tvVacio.visibility = if (notas.isEmpty()) View.VISIBLE else View.GONE
                 }
             }

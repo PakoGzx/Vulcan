@@ -4,8 +4,10 @@ import android.util.Log
 import com.example.vulcan.data.local.ChatDao
 import com.example.vulcan.data.model.MensajeChat
 import com.example.vulcan.data.remote.GeminiApi
+import com.example.vulcan.data.remote.NotasTools
 import com.example.vulcan.data.remote.RetrofitClient
 import com.example.vulcan.data.remote.model.Content
+import com.example.vulcan.data.remote.model.FunctionResponse
 import com.example.vulcan.data.remote.model.GeminiRequest
 import com.example.vulcan.data.remote.model.Part
 import com.example.vulcan.data.remote.model.SystemInstruction
@@ -22,28 +24,56 @@ class ChatRepository(
     companion object {
         private const val MAX_MENSAJES = 20     // cuántos mensajes recientes se envían
         private const val MAX_INTENTOS = 3      // intentos ante error temporal
+        private const val MAX_VUELTAS = 5       // máximo de ciclos pregunta -> función -> respuesta
         private const val INSTRUCCION_SISTEMA =
             "Eres un asistente integrado en Vulcan, una aplicación de notas. " +
+                    "Puedes crear, listar, buscar, leer, actualizar y eliminar las notas del usuario " +
+                    "usando tus herramientas. " +
+                    "Antes de eliminar una nota pide confirmación al usuario. " +
                     "Responde de forma breve, clara y en español."
     }
 
-    // Método principal: recibe el historial y devuelve éxito o error
-    suspend fun enviarMensaje(historial: List<MensajeChat>): ResultadoChat {
-        val peticion = construirPeticion(historial)
+    // Método principal: recibe el historial y el ejecutor de herramientas
+    suspend fun enviarMensaje(
+        historial: List<MensajeChat>,
+        executor: NotasToolExecutor
+    ): ResultadoChat {
+        val contenidos = construirContenidos(historial).toMutableList()
         return try {
-            val respuesta = conReintentos {
-                api.generar(RetrofitClient.MODELO, peticion)
-            }
-            val texto = respuesta.candidates
-                ?.firstOrNull()?.content?.parts
-                ?.mapNotNull { it.text }
-                ?.joinToString("")
+            repeat(MAX_VUELTAS) {
+                val peticion = GeminiRequest(
+                    contents = contenidos,
+                    systemInstruction = SystemInstruction(listOf(Part(text = INSTRUCCION_SISTEMA))),
+                    tools = NotasTools.declaraciones
+                )
+                val respuesta = conReintentos {
+                    api.generar(RetrofitClient.MODELO, peticion)
+                }
+                val partes = respuesta.candidates
+                    ?.firstOrNull()?.content?.parts
+                    .orEmpty()
+                val llamadas = partes.mapNotNull { it.functionCall }
 
-            if (texto.isNullOrBlank()) {
-                ResultadoChat.Error("El asistente no pudo generar una respuesta. Intenta reformular tu pregunta.")
-            } else {
-                ResultadoChat.Exito(texto.trim())
+                // Sin llamadas a funciones: es la respuesta final en texto
+                if (llamadas.isEmpty()) {
+                    val texto = partes.mapNotNull { it.text }.joinToString("").trim()
+                    return if (texto.isBlank()) {
+                        ResultadoChat.Error("El asistente no pudo generar una respuesta. Intenta reformular tu pregunta.")
+                    } else {
+                        ResultadoChat.Exito(texto)
+                    }
+                }
+
+                // 1) Se devuelve tal cual lo que pidió el modelo (conserva thoughtSignature)
+                contenidos.add(Content(role = MensajeChat.ROL_MODELO, parts = partes))
+
+                // 2) Se ejecutan las funciones y se responden todas juntas en un solo mensaje
+                val resultados = llamadas.map { llamada ->
+                    Part(functionResponse = FunctionResponse(llamada.name, executor.ejecutar(llamada)))
+                }
+                contenidos.add(Content(role = MensajeChat.ROL_USUARIO, parts = resultados))
             }
+            ResultadoChat.Error("El asistente tardó demasiados pasos. Intenta de nuevo.")
         } catch (e: CancellationException) {
             throw e                                   // no atrapar cancelaciones de corrutinas
         } catch (e: HttpException) {
@@ -57,18 +87,11 @@ class ChatRepository(
     }
 
     // Convierte nuestro historial al formato de Gemini
-    private fun construirPeticion(historial: List<MensajeChat>): GeminiRequest {
-        val recientes = historial
+    private fun construirContenidos(historial: List<MensajeChat>): List<Content> =
+        historial
             .takeLast(MAX_MENSAJES)
             .dropWhile { it.rol != MensajeChat.ROL_USUARIO }   // debe empezar con un mensaje del usuario
-
-        return GeminiRequest(
-            contents = recientes.map {
-                Content(role = it.rol, parts = listOf(Part(it.texto)))
-            },
-            systemInstruction = SystemInstruction(listOf(Part(INSTRUCCION_SISTEMA)))
-        )
-    }
+            .map { Content(role = it.rol, parts = listOf(Part(text = it.texto))) }
 
     suspend fun obtenerHistorial(): List<MensajeChat> = dao.obtenerTodos()
 

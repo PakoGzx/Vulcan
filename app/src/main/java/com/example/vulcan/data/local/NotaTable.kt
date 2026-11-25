@@ -8,6 +8,7 @@ object NotaTable {
     const val COL_CONTENIDO = "contenido"
     const val COL_CREADA = "creada"
     const val COL_MODIFICADA = "modificada"
+    const val COL_FAVORITA = "favorita"
 
     const val SQL_CREAR = """
         CREATE TABLE IF NOT EXISTS $NOMBRE (
@@ -16,7 +17,8 @@ object NotaTable {
             $COL_TITULO TEXT NOT NULL,
             $COL_CONTENIDO TEXT NOT NULL,
             $COL_CREADA INTEGER NOT NULL,
-            $COL_MODIFICADA INTEGER NOT NULL
+            $COL_MODIFICADA INTEGER NOT NULL,
+            $COL_FAVORITA INTEGER NOT NULL DEFAULT 0
         )
     """
 }

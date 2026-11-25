@@ -15,6 +15,7 @@ class NotaDao(private val helper: SQLiteOpenHelper) {
             put(NotaTable.COL_CONTENIDO, n.contenido)
             put(NotaTable.COL_CREADA, n.creada)
             put(NotaTable.COL_MODIFICADA, n.modificada)
+            put(NotaTable.COL_FAVORITA, if (n.favorita) 1 else 0)
         }
         helper.writableDatabase.insert(NotaTable.NOMBRE, null, valores)
     }
@@ -50,6 +51,19 @@ class NotaDao(private val helper: SQLiteOpenHelper) {
             )
         }
 
+    // Solo cambia la estrella; no toca "modificada" para que la nota no suba al inicio de la lista
+    suspend fun cambiarFavorita(usuarioId: Long, id: Long, favorita: Boolean): Int =
+        withContext(Dispatchers.IO) {
+            val valores = ContentValues().apply {
+                put(NotaTable.COL_FAVORITA, if (favorita) 1 else 0)
+            }
+            helper.writableDatabase.update(
+                NotaTable.NOMBRE, valores,
+                "${NotaTable.COL_ID} = ? AND ${NotaTable.COL_USUARIO} = ?",
+                arrayOf(id.toString(), usuarioId.toString())
+            )
+        }
+
     suspend fun eliminar(usuarioId: Long, id: Long): Int = withContext(Dispatchers.IO) {
         helper.writableDatabase.delete(
             NotaTable.NOMBRE,
@@ -73,7 +87,8 @@ class NotaDao(private val helper: SQLiteOpenHelper) {
                             titulo = c.getString(c.getColumnIndexOrThrow(NotaTable.COL_TITULO)),
                             contenido = c.getString(c.getColumnIndexOrThrow(NotaTable.COL_CONTENIDO)),
                             creada = c.getLong(c.getColumnIndexOrThrow(NotaTable.COL_CREADA)),
-                            modificada = c.getLong(c.getColumnIndexOrThrow(NotaTable.COL_MODIFICADA))
+                            modificada = c.getLong(c.getColumnIndexOrThrow(NotaTable.COL_MODIFICADA)),
+                            favorita = c.getInt(c.getColumnIndexOrThrow(NotaTable.COL_FAVORITA)) == 1
                         )
                     )
                 }
