@@ -1,6 +1,11 @@
 package com.example.vulcan
 
+import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -8,6 +13,10 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -35,6 +44,11 @@ import kotlinx.coroutines.launch
 
 class HomeActivity : AppCompatActivity() {
 
+    companion object {
+        private const val CANAL_ID = "canal_general"
+        private const val NOTIFICACION_ID = 1
+        private const val CODIGO_PERMISO = 100
+    }
     private lateinit var binding: ActivityHomeBinding
     private val viewModel: NotasViewModel by viewModels()
     private val chatViewModel: ChatViewModel by viewModels()
@@ -110,6 +124,8 @@ class HomeActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this, cerrarChatAlAtras)
         configurarChat()
         if (savedInstanceState?.getBoolean("chat_abierto") == true) alternarChat(true)
+
+        crearCanalNoti()
     }
 
     // ---------- Notas ----------
@@ -121,13 +137,21 @@ class HomeActivity : AppCompatActivity() {
         vista.etContenido.setText(nota?.contenido)
 
         MaterialAlertDialogBuilder(this)
-            .setTitle(if (nota == null) "Nueva nota" else "Editar nota")
+            .setTitle(if (nota == null) {
+                "Nueva nota"
+            } else {
+                "Editar nota"
+            })
             .setView(vista.root)
             .setPositiveButton("Guardar") { _, _ ->
                 val titulo = vista.etTitulo.text.toString().trim()
                 val contenido = vista.etContenido.text.toString().trim()
                 if (titulo.isNotEmpty() || contenido.isNotEmpty()) {
-                    viewModel.guardar(nota?.id ?: 0L, titulo.ifEmpty { "Sin título" }, contenido)
+                    val id = if (nota != null) nota.id else 0L
+                    val tituloFinal = if (titulo.isEmpty()) "Sin título" else titulo
+                    viewModel.guardar(id, tituloFinal, contenido)
+                    if (id == 0L) mostrarNoti("Una nota ha sido creada con éxito")
+                    else mostrarNoti("Una nota ha sido actualizada con éxito")
                 }
             }
             .setNegativeButton("Cancelar", null)
@@ -138,7 +162,10 @@ class HomeActivity : AppCompatActivity() {
         MaterialAlertDialogBuilder(this)
             .setTitle("Eliminar nota")
             .setMessage("¿Eliminar la nota «${nota.titulo}»?")
-            .setPositiveButton("Eliminar") { _, _ -> viewModel.eliminar(nota.id) }
+            .setPositiveButton("Eliminar") { _, _ ->
+                viewModel.eliminar(nota.id)
+                mostrarNoti("Una nota ha sido eliminada con éxito")
+            }
             .setNegativeButton("Cancelar", null)
             .show()
     }
@@ -243,5 +270,65 @@ class HomeActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean("chat_abierto", chatAbierto)
+    }
+
+    //Metodo para crear el canal de notificacion y ver los permisos
+    private fun crearCanalNoti() {
+        //Verificar la version de android del dispositivo
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            //Crear canal de difusion
+            val canal = NotificationChannel(
+                CANAL_ID,
+                "Notificaciones generales",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            canal.description = "Canal de notificaciones de Vulcan"
+
+            val adminNotificacion = getSystemService(NotificationManager::class.java)
+
+            adminNotificacion.createNotificationChannel(canal)
+        }
+    }
+
+    //Metodo para construir la notificacion
+    @SuppressLint("MissingPermission")
+    private fun mostrarNoti(noti : String) {
+        if (!validarPermisoNoti()) {
+            return
+        }
+        //Configurar la notificacion
+        val notificacion = NotificationCompat.Builder(this, CANAL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle("Vulcan")
+            .setContentText(noti)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .build()
+
+        //Mandar la notificacion
+        NotificationManagerCompat
+            .from(this)
+            .notify(NOTIFICACION_ID, notificacion)
+    }
+
+    //Validar el permiso de notificaciones
+    private fun validarPermisoNoti() : Boolean{
+        //Validar la version del dispositivo
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED) {
+            //Pedir permiso al usuario nuevamente
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                CODIGO_PERMISO
+            )
+
+            Toast.makeText(this, "Autoriza el permiso y vuelve a intentar", Toast.LENGTH_SHORT).show()
+            return false
+        }
+        return true
     }
 }
